@@ -27,4 +27,21 @@ router.get('/list-data/:id', (req, res) => {
     })
 });
 
+router.get('/delete/:list_id/:board_id',(req,res)=>{
+    boardSchema.findOne({_id:req.params.board_id}).then((obj)=>{
+        for(i = 0;i < obj.lists.length;i++){
+            if(obj.lists[i]==req.params.list_id){
+                obj.lists.splice(i,1);
+                boardSchema.updateOne({_id:obj._id},{$set:{lists:obj.lists}},(err)=>{
+                    if(err){
+                        console.log(err);
+                    }
+                    res.json({message:"deleted"});
+                    res.end();
+                });
+            }
+        }
+    });
+});
+
 module.exports = router;

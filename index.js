@@ -22,7 +22,8 @@ const cardRoute = require('./routes/card');
 
 
 // CONNECTING TO DB
-mongoose.connect('mongodb://localhost:27017/pms', { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
+const atlasURL = "mongodb+srv://pms:pmsdbconnect@cluster0-dgzky.mongodb.net/pms?retryWrites=true&w=majority";
+mongoose.connect(atlasURL, { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
     if (!err) {
         console.log('succesfully connected to db');
     } else {

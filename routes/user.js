@@ -15,49 +15,67 @@ const userData = require('../models/user');
 
 //SIGN-UP ROUTE AND SENDING AN EMAIL FOR CONFIRMATION OF ACCOUNT
 router.post('/sign-up', (req, res) => {
-    const user = new userData({
-        username: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
+    userData.findOne({email:req.body.email}).then((data)=>{
+        if(data != undefined){
+            if(data.isVerified){
+                res.json({message:"Seems like you already have an account"});
+                res.end();
+                return;
+            }
+            else{
+                res.json({message:"You already have an account, please check your email for verification link"});
+                res.end();
+                return;
+            }
+        }
+        else{
+            const user = new userData({
+                username: req.body.username,
+                email: req.body.email,
+                password: req.body.password,
+            });
+            user.save().then(data => {
+        
+                    //CREATING A VARIABLE FOR LINK
+                    const link = 'http://localhost:3000/user/email-verification/' + data._id;
+        
+        
+                    //SENDING AN MAIL
+                    let transporter = nodemailer.createTransport({
+                        host: 'smtp.gmail.com',
+                        port: 587,
+                        secure: false,
+                        requireTLS: true,
+                        auth: {
+                            user: 'ciesrkr@gmail.com',
+                            pass: 'rkrseic#1'
+                        }
+                    });
+        
+                    let mailOptions = {
+                        from: 'ciesrkr@gmail.com',
+                        to: data.email,
+                        subject: 'Test',
+                        text: 'Click on the following link to verify your account : ' + link
+                    };
+        
+                    transporter.sendMail(mailOptions, (error, info) => {
+                        if (error) {
+                            return console.log(error.message);
+                        }
+                        console.log('success');
+                    });
+        
+                    console.log(data);
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+            res.json({message:"success"});
+            res.end();
+        }
     });
-    user.save().then(data => {
-
-            //CREATING A VARIABLE FOR LINK
-            const link = 'http://localhost:3000/user/email-verification/' + data._id;
-
-
-            //SENDING AN MAIL
-            let transporter = nodemailer.createTransport({
-                host: 'smtp.gmail.com',
-                port: 587,
-                secure: false,
-                requireTLS: true,
-                auth: {
-                    user: 'ciesrkr@gmail.com',
-                    pass: 'rkrseic#1'
-                }
-            });
-
-            let mailOptions = {
-                from: 'ciesrkr@gmail.com',
-                to: data.email,
-                subject: 'Test',
-                text: 'Click on the following link to verify your account : ' + link
-            };
-
-            transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    return console.log(error.message);
-                }
-                console.log('success');
-            });
-
-            console.log(data);
-        })
-        .catch(err => {
-            console.log(err);
-        });
-    res.end("200");
+  
 });
 
 //IF THE GIVEN MAIL IS VERIFIED IT IS UPDATED AND REDIRECTED TO LOGIN PAGE
